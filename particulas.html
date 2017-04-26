@@ -39,13 +39,13 @@
                 }
 
                 function erase() {
-                    context.setFillColor("#FFFFFF");
+                    context.fillStyle = "#FFFFFF";
                     context.fillRect(sx-1, sy-1, size+2, size+2); //Sem rastro
                     //context.fillRect(sx, sy, 5, 5); //Com rastro
                 }
 
                 function draw() {
-                    context.setFillColor(color);
+                    context.fillStyle = color;
                     context.fillRect(sx, sy, size, size);
                 }
 
