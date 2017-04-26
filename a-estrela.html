@@ -1,0 +1,202 @@
+<html>
+    <head>
+        <title>A*</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <script type="application/x-javascript">
+            function Point(x,y) {
+                function p() {
+                    this[0] = x;  this[1] = y;
+                    this.__defineGetter__("x", function(){return this[0];});
+                    this.__defineSetter__("x", function(val){this[0] = val;});
+                    
+                    this.__defineGetter__("y", function(){return this[1];});
+                    this.__defineSetter__("y", function(val){this[1] = val;});
+                    
+                    this.abs = function(p) {
+                        return Math.sqrt(Math.pow(p.x-this.x,2)+Math.pow(p.y-this.y,2));
+                    }
+                }
+                p.prototype=Array();
+                return new p();
+            }
+        
+            function Robot(area) {
+                var canvas = null;
+                var target = null;
+                var current = null;
+                var distance = 0;
+                var depth = 1;
+                var past = Array();
+                var fid = 0;
+                
+                this.initialize = function(c) {
+                    var p = Point();
+                    p.x = Math.floor(Math.random() * area.length);
+                    p.y = Math.floor(Math.random() * area[0].length);
+                    
+                    while(!area[p.x][p.y]) {
+                        p.x = Math.floor(Math.random() * area.length);
+                        p.y = Math.floor(Math.random() * area[0].length);
+                    }
+                    current = p;
+
+                    p = Point();
+                    p.x = Math.floor(Math.random() * area.length);
+                    p.y = Math.floor(Math.random() * area[0].length);
+                    while(!area[p.x][p.y]) {
+                        p.x = Math.floor(Math.random() * area.length);
+                        p.y = Math.floor(Math.random() * area[0].length);
+                    }
+                    target = p;
+                    distance = current.abs(target);
+                    
+                    area.mark_field(current.x, current.y, "#5555FF");
+                    area.mark_field(target.x, target.y, "#FF5500");
+                    area[target.x][target.y] = false;
+                }
+                
+                this.run = function() {
+                    fid = setInterval(walk,100);
+                }
+                
+                /**
+                 * Esta seria a função heurística
+                 */
+                function choose_next_points() {
+                    var d = distance*2;
+                    var best = null;
+                    
+                    for(var i=-1; i<=1; i++) {
+                        var p = Point(current.x+i, current.y);
+                        
+                        if(i!=0 && p.x>=0 && p.x<area.width && !area[p.x][p.y]){
+                            if(p.abs(target) < d){
+                                d = p.abs(target);
+                                best = p;
+                            }
+                        }
+                    }
+                    for(var i=-1; i<=1; i++) {
+                        p = Point(current.x, current.y+i);
+                        if(i!=0 && p.y>=0 && p.y<area.height && !area[p.x][p.y]){
+                            if(p.abs(target) < d){
+                                d = p.abs(target);
+                                best = p;
+                            }
+                        }
+                    }
+                    return best;
+                }
+                
+                function walk() {
+                    var p = choose_next_points();
+                    if(p==null){
+                        current = past.pop();
+                        area.mark_field(current.x, current.y,"#5555AA");
+                    } else {
+                        past.push(current);
+                        current = p;
+                        area.mark_field(current.x, current.y,"#5555FF");
+                    }
+                    
+                    if(current.x == target.x && current.y == target.y)
+                        clearInterval(fid);
+                }
+            }
+            
+            function Area(width, height, field) {
+                function A() {
+                    var canvas = null;
+
+                    this.__defineGetter__("width", function(){return this.length;});
+                    this.__defineGetter__("height", function(){return this[0].length;});
+                    
+                    this.initialize = function(c) {
+                        canvas = c;
+                        canvas.fillStyle = "#FFFFFF";
+                        canvas.strokeStyle = "#000000";
+                        
+                        for(var x=0; x<width; x+=field) {
+                            var linha = Array();
+                            for(var y=0; y<height; y+=field) {
+                                linha.push(Math.random() > 0.7);
+                            }
+                            this.push(linha);
+                        }
+                        
+                        this.draw();
+                    }
+                    
+                    this.draw = function() {
+                        for(var x=0; x<this.width; x++) {
+                            for(var y=0; y<this.height; y++) {
+                                
+                                if(this[x][y])
+                                    canvas.fillStyle = "#000000";
+                                else
+                                    canvas.fillStyle = "#FFFFFF";
+                                
+                                canvas.strokeRect(x*field, y*field, field-1, field-1);
+                                canvas.fillRect(x*field, y*field, field, field);
+                            }
+                        }
+                    }
+                    
+                    this.mark_field = function(x, y, color) {
+                        this[x][y] = true;
+                        canvas.fillStyle = color;
+                        canvas.fillRect(x*field, y*field, field, field);
+                    }
+                    
+                    this.toggle_field = function(coordX, coordY) {
+                        var x = Math.floor(coordX/field);
+                        var y = Math.floor(coordY/field);
+
+                        this[x][y] = !this[x][y];
+                        if(this[x][y])
+                            canvas.fillStyle = "#000000";
+                        else
+                            canvas.fillStyle = "#FFFFFF";
+                        canvas.strokeRect(x*field, y*field, field-1, field-1);
+                        canvas.fillRect(x*field, y*field, field-1, field-1);
+                    }
+                }
+                A.prototype = Array();
+                return new A();
+            }
+            
+            function start() {
+                var canvas = document.getElementById('canvas');
+                c = canvas.getContext('2d');
+                
+                a = new Area(canvas.width, canvas.height, 10);
+                var r = new Robot(a);
+                
+                a.initialize(c);
+                r.initialize(c);
+                document.getElementById('run').onclick = r.run;
+                
+                
+                canvas.onclick = function(evt) {
+                    a.toggle_field(evt.offsetX, evt.offsetY);
+                    
+                };
+            }
+            
+            window.onload = start;
+        </script>
+        <style type="text/css">
+            canvas {
+                border: 1px solid black;
+            }
+            input { font-size: 20pt; font-weight:bold;  border-color: #F00 }
+        </style>
+    </head>
+    <body>
+        <h1>A*</h1>
+        <canvas id="canvas" width="800" height="600"></canvas>
+        <div>
+            <input type="button" id="run" value="Começar"/>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Testando alguma animna&ccedil;&otilde;es</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+        <style type="text/css">
+            html { height: 100%; }
+            body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
+            #container { margin: 0; padding: 0; height: 100%; width: 100%; background-color: #b500ab; position: relative; }
+            #control-bar { top: 0px; left: 0px; width: 100%; padding: 3px; position: absolute; background: -moz-linear-gradient(top, #fceabb 0%, #fccd4d 50%, #f8b500 51%, #fbdf93 100%); background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fceabb), color-stop(50%,#fccd4d), color-stop(51%,#f8b500), color-stop(100%,#fbdf93)); box-shadow: 0px 1px 10px #000000; }
+            #control-bar label { margin-left: 1em; font-family: fantasy; font-size: 90%; font-variant: small-caps; font-weight: bold; }
+            #control-bar input { border: 2px solid #ecbd3d; padding: 3px; border-radius: 4px 4px 4px 4px; }
+        </style>
+
+        <script type="text/javascript">
+            var G = 0.1;
+
+            /**
+             * Isto representa um bolota
+             */
+            function Block() {
+                var biid = 0; // block interval id
+                var vx = 0;
+                var vy = 0;
+                var factor = 0.8;
+                var container = null;
+
+                var ground = 0;
+                var leftWall = 0;
+                var rightWall = 0;
+
+                var _node = (function(){
+                        var el=document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+                        el.setAttribute('fill', "#"+Math.round(0xffffff * Math.random()).toString(16));
+                        el.setAttribute('r', Math.ceil(Math.random()*20));
+                        return el;
+                        })();
+
+                var thisblock = this;
+                _node.onmousedown = function(e) {
+                    var mouse_pressed = true;
+                    var simple_click = true;
+                    var was_moving = thisblock.moving;
+                    var mouse = {'x': e.clientX, 'y':e.clientY, 'vx':0, 'vy':0 };
+                    var _calcid = setInterval(function() {
+                                mouse.vx = 0;
+                                mouse.vy = 0;
+                            }, 1000);
+                    thisblock.stop();
+                    thisblock.setVelocity(0, 0);
+                    document.onmouseup = function(e) {
+                        mouse_pressed = false;
+                        document.onmousemove = function(e){ return false; };
+                        document.onmouseup = function(e){ return false; };
+                        thisblock.setVelocity(mouse.vx, mouse.vy);
+                        if(simple_click) {
+                            if(was_moving) {
+                                thisblock.stop();
+                            } else {
+                                thisblock.start();
+                            }
+                        } else {
+                            if(was_moving) {
+                                thisblock.start();
+                            } else {
+                                thisblock.stop();
+                            }
+                        }
+                        clearInterval(_calcid);
+                        return false;
+                    };
+                    document.onmousemove = function(e) {
+                        simple_click = false;
+                        mouse.vx = (e.clientX - mouse.x)/5;
+                        mouse.vy = (e.clientY - mouse.y)/5;
+                        _node.cx.baseVal.value = mouse.x = e.clientX;
+                        _node.cy.baseVal.value = mouse.y = e.clientY;
+                        return false;
+                    };
+                    return false;
+                };
+                _node.onmousewheel = function(e) {
+                    if(e.wheelDelta > 0) {
+                        _node.r.baseVal.value++;
+                    } else if(e.wheelDelta < 0) {
+                        _node.r.baseVal.value--;
+                    }
+                    ground = container.height.baseVal.value - _node.r.baseVal.value;
+                    leftWall = _node.r.baseVal.value;
+                    rightWall = container.width.baseVal.value - _node.r.baseVal.value;
+                };
+
+
+                this.appendTo = function(c) {
+                    c.appendChild(_node);
+                    container = c;
+
+                    var height = window.innerHeight;
+                    var width = window.innerWidth;
+                    try{
+                        height = container.height.baseVal.value;
+                        width = container.width.baseVal.value;
+                    } catch(e) {
+                        window.console && console.log(e);
+                        height = container.clientHeight;
+                        width = container.clientWidth;
+                    }
+
+                    ground = height - _node.r.baseVal.value;
+                    leftWall = _node.r.baseVal.value;
+                    rightWall = width - _node.r.baseVal.value;
+                };
+
+                this.setCoords = function(x,y) {
+                    _node.setAttribute('cx', x);
+                    _node.setAttribute('cy', y);
+                };
+
+                this.setVelocity = function(_vx, _vy) {
+                    vx = _vx;
+                    vy = _vy;
+                };
+
+                function update() {
+                    _node.cy.baseVal.value = _node.cy.baseVal.value + vy + G/2;
+                    vy = vy + G;
+
+                    if(_node.cy.baseVal.value > ground) {
+                        vx = vx * factor;
+                        if(Math.abs(vy) > 0.5) {
+                            vy = -1 * factor * Math.abs(vy);
+                        } else {
+                            vy = 0;
+                            _node.cy.baseVal.value = ground;
+                        }
+                    }
+                    if(_node.cx.baseVal.value < leftWall) {
+                        vx = -1 * vx;
+                        if(vx == 0) {
+                            _node.cx.baseVal.value = leftWall;
+                        }
+                    } else if(_node.cx.baseVal.value > rightWall) {
+                        vx = -1 * vx;
+                        if(vx == 0) {
+                            _node.cx.baseVal.value = rightWall;
+                        }
+                    }
+
+                    _node.cx.baseVal.value = _node.cx.baseVal.value + vx;
+                }
+
+                this.start = function() {
+                    biid = setInterval(update, 10);
+                    this.moving = true;
+                };
+
+                this.stop = function() {
+                    clearInterval(biid);
+                    biid = 0;
+                    this.moving = false;
+                };
+
+                this.remove = function() {
+                    container.removeChild(_node);
+                };
+            }
+
+            window.onload = function() {
+                var container = document.getElementById('container');
+                function handle_event_to_false(e) { return false; }
+
+                container.onclick = handle_event_to_false;
+                container.onmousedown = handle_event_to_false;
+                container.onmouseup = handle_event_to_false;
+
+                var blocks = [];
+
+                var update_gravity = function(e) {
+                    G = parseFloat(this.value);
+                }
+                document.getElementById('gravity').onchange = update_gravity;
+                document.getElementById('gravity').onkeyup  = update_gravity;
+
+                function restart() {
+                    var ammount = parseInt(document.getElementById('ammount').value) || 10;
+                    G = parseFloat(document.getElementById('gravity').value) || 0.1;
+
+                    while(blocks.length > 0) {
+                        var b = blocks.pop();
+                        b.remove();
+                    }
+                    for(var i=0; i < ammount; i++) {
+                        var b = new Block();
+                        blocks.push(b);
+                        b.setCoords(
+                                Math.floor(Math.abs(container.clientWidth * Math.random()  -100)),
+                                Math.floor(Math.abs(container.clientHeight * Math.random() -100))
+                                );
+                        b.setVelocity(
+                                Math.random() * 10 - 5,
+                                Math.random() * 10 - 5
+                                );
+                        b.appendTo(container);
+                        b.start();
+                    }
+                }
+
+                function stop_balls() {
+                    for(var i = 0; i < blocks.length; i++) {
+                        if(blocks[i].moving)
+                            blocks[i].stop();
+                    }
+                }
+
+                function start_balls() {
+                    for(var i = 0; i < blocks.length; i++) {
+                        if(!blocks[i].moving)
+                            blocks[i].start();
+                    }
+                }
+
+                document.getElementById('apply-values').onclick = restart;
+                document.getElementById('start-balls').onclick = start_balls
+                document.getElementById('stop-balls').onclick = stop_balls;
+                restart();
+            }
+        </script>
+    </head>
+    <body>
+        <svg id="container" version="1.1" xmlns="http://www.w3.org/2000/svg">
+        </svg>
+        <div id="control-bar">
+            <label for="gravity">Gravidade</label><input type="number" id="gravity" step="0.1" value="0.1"/>
+            <label for="ammount">Quantidade</label><input type="number" id="ammount" value="10"/>
+            <button id="apply-values">Reiniciar anima&ccedil;&atilde;o</button>
+            <button id="stop-balls">Para bolas</button>
+            <button id="start-balls">Iniciar bolas</button>
+        </div>
+    </body>
+</html>

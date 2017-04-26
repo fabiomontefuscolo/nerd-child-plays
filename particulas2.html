@@ -1,0 +1,117 @@
+<html>
+    <head>
+        <title>Particulas</title>
+        <script type="application/x-javascript">
+            var Particle = function(sx, sy, vx, vy) {
+                var context = null;
+                var color = "#"+Math.round(0xffffff * Math.random()).toString(16);
+                var size = 10;
+                var fid = 0;
+
+                function update() {
+                    erase();
+
+                    if(sy < 0 ) {
+                        vy = Math.abs(vy);
+                    } else if(sy > 599) {
+                        vy = -1 * vy
+                    }
+                    if(sx < 1 || sx > 799) {
+                        vx = -1 * vx;
+                    }
+
+                    sx = sx + vx;
+                    sy = sy + vy;
+
+                    vy = vy + Math.random()/10 - 0.05;
+                    vx = vx + Math.random()/10 - 0.05;
+
+                    draw();
+                }
+
+                function erase() {
+                    context.setFillColor("#FFFFFF");
+                    context.fillRect(sx-1, sy-1, size+2, size+2); //Sem rastro
+                    //context.fillRect(sx, sy, 5, 5); //Com rastro
+                }
+
+                function draw() {
+                    context.setFillColor(color);
+                    context.fillRect(sx, sy, size, size);
+                }
+
+                this.start = function() {
+                    fid = setInterval(update, 10);
+                }
+
+                this.stop = function() {
+                    clearInterval(fid);
+                    fid = 0;
+                }
+
+                this.toggle = function() {
+                    if(fid === 0) {
+                        fid = setInterval(update, 10);
+                    } else {
+                        clearInterval(fid);
+                        fid = 0;
+                    }
+                }
+
+                this.setContext = function(c) {
+                    context = c;
+                }
+
+                this.setColor = function(c) {
+                    color = c;
+                }
+
+                this.getColor = function() {
+                    return color;
+                }
+            }
+
+            function createButton(attrs) {
+                var b = document.createElement('input');
+                for(var a in attrs) {
+                    b[a] = attrs[a];
+                }
+                return b;
+            }
+
+            function start() {
+                var canvas = document.getElementById('canvas');
+                var painel = document.getElementById('painel');
+                var c = canvas.getContext('2d');
+
+                for( var i = 0; i < 10; i++ ) {
+                    var p = new Particle(Math.random() * canvas.width,
+                                         Math.random() * canvas.height,
+                                         Math.random() - 0.5,
+                                         Math.random() - 0.5);
+                    p.setContext(c);
+                    //p.start();
+
+                    painel.appendChild(
+                        createButton({type:"button",
+                                      onclick:p.toggle,
+                                      color:p.getColor(),
+                                      value:"Start/Stop"})
+                    );
+                }
+            }
+
+            window.onload = start;
+        </script>
+        <style type="text/css">
+            canvas {
+                border: 1px solid black;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Particulas</h1>
+        <canvas id="canvas" width="800" height="600"></canvas>
+        <div id="painel"></div>
+    </body>
+</html>

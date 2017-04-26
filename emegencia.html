@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Emerg&ecirc;ncia</title>
+        <meta charset="UTF-8"/>
+        <meta name="author" content="Fabio Montefuscolo"/>
+        <meta name="author" content="Luis Henrique Fagundes"/>
+
+        <script type="application/x-javascript">
+            var Square = function(x, y, w, h) {
+                var c = getCanvasContext();
+                var filled = false;
+                var toFill = false;
+
+                (function() {
+                    c.strokeRect(x, y, w, h);
+                    c.fillStyle = "#FFFFFF";
+                    c.fillRect(x, y, w, h);
+                })();
+
+                this.update = function() {
+                    c.strokeRect(x, y, w, h);
+                    if( toFill ) {
+                        c.fillStyle = "#380000";
+                        c.fillRect(x, y, w, h);
+                        filled = true;
+                    } else {
+                        c.fillStyle = "#FFFFFF";
+                        c.fillRect(x, y, w, h);
+                        filled = false;
+                    }
+                }
+
+                this.fill = function() {
+                    toFill = true; 
+                }
+
+                this.clear = function() {
+                    toFill = false;
+                }
+
+                this.isFilled = function() {
+                    return filled;
+                }
+            }
+
+            function start() {
+                var canvas = document.getElementById('canvas');
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+
+                window.getCanvasContext = function() {
+                    canvas.strokeStyle = "#000000";
+                    return canvas.getContext('2d');
+                }
+
+                var s_width = 0;
+                var s_height = 0;
+
+                //s_width = s_height = 24;
+                s_width = s_height = 13;
+
+                window.tabuleiro = [];
+
+                for(var i = 0; i < canvas.width; i += s_width) {
+                    var linha = [];
+                    for(var j = 0; j < canvas.height; j += s_height) {
+                        linha.push(new Square(i, j, s_width, s_height));
+                    }
+                    tabuleiro.push(linha);
+                }
+
+                //tabuleiro[40][10].fill() && tabuleiro[40][10].update();
+                tabuleiro[41][11].fill() && tabuleiro[41][11].update();
+                tabuleiro[42][11].fill() && tabuleiro[41][11].update();
+                //tabuleiro[43][10].fill() && tabuleiro[41][11].update();
+
+                var draw = function() {
+                    for(var i=0; i < tabuleiro.length; i++) {
+                        for(var j=0; j < tabuleiro[i].length; j++) {
+                            if(! tabuleiro[i][j].isFilled()) {
+                                neighbourCount = 0;
+                                for (var incI = -1; incI <= 1; incI++) {
+                                    for (var incJ = -1; incJ <= 1; incJ++) {
+                                        if (incI != 0 || incJ != 0) {
+                                           posI = (tabuleiro.length + i + incI) % tabuleiro.length;
+                                           posJ = (tabuleiro[i].length + j + incJ) % tabuleiro[i].length;
+                                           
+                                           if (tabuleiro[posI][posJ].isFilled()) {
+                                               neighbourCount++;
+                                           }
+                                        }
+                                    }
+                                }
+                                if(neighbourCount == 2){
+                                    tabuleiro[i][j].fill();
+                                }
+                            } else {
+                                tabuleiro[i][j].clear();
+                            }
+                        }
+                    }
+                    for(var i=0; i < tabuleiro.length; i++) {
+                        for(var j=0; j < tabuleiro[i].length; j++) {
+                            tabuleiro[i][j].update();
+                        }
+                    }                                
+                };
+
+                var interval = 100;
+                var execution = setInterval(draw, interval);
+
+                document.onmousewheel = function(e) {
+                    if(e.wheelDelta > 0) {
+                        interval += 100;
+                        clearInterval(execution);
+                        execution = setInterval(draw, interval);
+                    } else if(e.wheelDelta < 0 && interval > 0) {
+                        interval -= 100;
+                        clearInterval(execution);
+                        execution = setInterval(draw, interval);
+                    }
+                    console.log(interval);
+                };
+            }
+
+            window.onload = start;
+        </script>
+        <style type="text/css">
+            html { height: 100%;  }
+            body { height: 100%; margin:0; padding: 0; }
+            #canvas { height: 100%; width: 100%; margin: 0; padding: 0; background-color: black;}
+            h1, p { display: none; }
+        </style>
+    </head>
+    <body>
+        <h1>Emerg&ecirc;ncia<b style="color: #380000">/<b></h1>
+        <canvas id="canvas"></canvas>
+        <p>O Asa que fez funcionar!</p>
+    </body>
+</html>

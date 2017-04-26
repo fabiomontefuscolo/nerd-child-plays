@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Fractal que está na Wikipedia</title>
+        <style type="text/css">
+            html { height: 100%;  }
+            body { height: 100%; margin:0; padding: 0; }
+            #canvas { height: 100%; width: 100%; margin: 0; padding: 0; background-color: black;}
+            h1, p { display: none; }
+        </style>
+        <script type="text/javascript">
+            window.onload = function () {
+                canvas = document.getElementById('canvas');
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+
+                var d = canvas.getContext('2d');
+                d.fillStyle = "#FFFFFF";
+
+                var point = {x: 0, y: canvas.height};
+
+                var system = [
+                    function(p) {
+                        return {
+                            x: 0,
+                            y: p.y*1.6
+                        };
+                    },
+                    function(p) {
+                        return {
+                            x: 2*p.x - 2.6*p.y,
+                            y: 2.3*p.x + 2.2*p.y + 16
+                        };
+                    },
+                    function(p) {
+                        return {
+                            x: -1.5*p.x + 2.8*p.y,
+                            y: 2.6*p.x + 2.4*p.y + 44
+                        };
+                    },
+                    function(p) {
+                        return {
+                            x: 8.5*p.x + 0.4*p.y,
+                            y: -0.04*p.x + 8.5*p.y + 16
+                        };
+                    }
+                ];
+
+                setInterval(function(){
+                    point = system[Math.round(Math.random()*10)%4](point);
+                    d.fillRect(point.x,point.y,1,1);
+                    console.log(point.x, point.y);
+                },100);
+            }
+        </script>
+    </head>
+    <body>
+        <h1>Fractal que estava na Wikipedia</h1>
+        <canvas id="canvas"></canvas>
+    </body>
+</html>

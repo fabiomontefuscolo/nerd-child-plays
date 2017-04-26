@@ -1,0 +1,80 @@
+<html>
+    <head>
+        <title>Fractal</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+        <script type="application/x-javascript">
+            window.onload = function() {
+                var canvas = document.getElementById('canvas');
+                var d = canvas.getContext('2d');
+                
+                var zi = [-1,-1];
+                if( canvas.width < canvas.height ) {
+                    zi[1] = canvas.height/canvas.width * -1;
+                } else if( canvas.width > canvas.height ) {
+                    zi[0] = canvas.width/canvas.height * -1;
+                }
+                var stepx = (Math.abs(zi[0])*2) / canvas.width;
+                var stepy = (Math.abs(zi[1])*2) / canvas.height;
+
+                d.fillStyle = "#000000";
+                var z = Array();
+                z[0] = zi[0];
+                z[1] = zi[1];
+
+                var starttime = new Date().getTime();
+                for( var i=0; i < canvas.height; i++ ){
+                    z[0] = zi[0];
+                    for( var j=0; j < canvas.width; j++ ){
+                        var m = mandel(z);
+                        if(m < 2) {
+                            d.fillRect(j,i,1,1);
+                        }
+                        z[0] = z[0] + stepx;
+                    }
+                    z[1] = z[1] + stepy;
+                }
+                var endtime = new Date().getTime();
+                var total = (endtime-starttime)/1000;
+
+                document.getElementById('ellapsed').innerHTML = "Tempo gasto: "+total+"s";
+            }
+
+            function mandel(z){
+                var c = Array(2);
+                c[0] = z[0];
+                c[1] = z[1];
+                //c[0] = 0.285;
+                //c[1] = -0.005;
+                for(var i=0; i<30; i++){
+                    z = multz(z,z);
+                    z = [z[0]+c[0], z[1]+c[1]]
+                }
+                return absz(z);
+            }
+
+            function absz(z) {
+                return Math.sqrt((z[0]*z[0]) + (z[1]*z[1]))
+            }
+
+            function multz(z1,z2) {
+                var z = Array(2);
+                
+                z[0] = z1[0]*z2[0] - z1[1]*z2[1];
+                z[1] = z1[0]*z2[1] + z1[1]*z2[0];
+
+                return z;
+            }
+        </script>
+        <style type="text/css">
+            canvas {
+                border: 1px solid black;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Mandelbrot</h1>
+        <canvas id="canvas" width="1024" height="640"></canvas>
+        <p id="ellapsed"></p>
+    </body>
+</html>

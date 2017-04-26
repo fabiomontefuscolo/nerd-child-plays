@@ -1,0 +1,84 @@
+<html>
+    <head>
+        <title>Fractal</title>
+        <script type="application/x-javascript">
+            window.onload = function() {
+                var canvas = document.getElementById('canvas');
+
+                turtle.pos[1] = Math.round(canvas.height/2);
+
+                turtle.g = canvas.getContext('2d');
+                turtle.g.strokeStyle = '#f00';
+                turtle.g.lineWidth   = 2;
+                
+                var code = -1;
+                var draw = function() {
+                    var len = Math.max(canvas.width, canvas.height);
+                    s( len, 5);
+                    //clearInterval(code);
+                }
+                //code = setInterval(draw,1000);
+
+                var starttime = new Date().getTime();
+
+                draw();
+
+                var endtime = new Date().getTime();
+                var total = (endtime-starttime)/1000;
+                document.getElementById('ellapsed').innerHTML = "Tempo gasto: "+total+"s";
+            }
+
+            function s(len,depth) {
+                    if(depth === 0) {
+                        turtle.foward(len);
+                    } else {
+                        s(len/3,depth-1);
+
+                        turtle.turn(60);
+                        s(len/3,depth-1);
+
+                        turtle.turn(240);
+                        s(len/3,depth-1);
+
+                        turtle.turn(60);
+                        s(len/3,depth-1);
+                    }
+            }
+
+            var turtle = {
+                g: undefined,
+
+                pos : [0,0],
+                angle: 0,
+
+                turn : function(d){
+                    var degrees = d % 360;
+                    this.angle += (d * Math.PI) / 180;
+                },
+
+                foward : function(len){
+                    var x = (Math.cos(this.angle) * len) + this.pos[0];
+                    var y = (Math.sin(this.angle) * len) + this.pos[1];
+
+                    //this.g.beginPath();
+                    this.g.moveTo(this.pos[0], this.pos[1]);
+                    this.g.lineTo(x, y);
+                    this.g.stroke();
+                    //this.g.closePath();
+
+                    this.pos = [x, y];
+                }
+            }
+        </script>
+        <style type="text/css">
+            canvas {
+                border: 1px solid black;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Snowflake</h1>
+        <canvas id="canvas" width="1024" height="640"></canvas>
+        <p id="ellapsed"></p>
+    </body>
+</html>

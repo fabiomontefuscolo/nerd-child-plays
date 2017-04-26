@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+      html, body { height: 100%; width: 100%; padding: 0; margin: 0; }
+      #quadrado { 
+          background-color: #08c;
+          border: 1px outset #07b;
+          border-radius: 26px;
+          height: 50px;
+          position: fixed;
+          width: 50px;
+      }
+    </style>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script type="text/javascript">
+
+      var whereAt= (function(){
+          if(window.pageXOffset!= undefined){
+              return function(ev){
+                  return [ev.clientX+window.pageXOffset,
+                  ev.clientY+window.pageYOffset];
+              }
+          }
+          else return function(){
+              var ev= window.event,
+              d= document.documentElement, b= document.body;
+              return [ev.clientX+d.scrollLeft+ b.scrollLeft,
+              ev.clientY+d.scrollTop+ b.scrollTop];
+          }
+      })()
+
+
+      window.onload = function(){
+        quad = document.getElementById('quadrado');
+
+        center = {};
+
+        center.x = document.body.clientWidth / 2;
+        center.y = document.body.clientHeight / 2;
+
+        x = center.x;
+        y = center.y;
+
+        quad.style.left = x + 'px';
+        quad.style.top  = y + 'px';
+
+        r = 50;
+        t = 0;
+
+        var animate = function (){
+          x = center.x + Math.cos( t / 180 * Math.PI ) * r;
+          y = center.y + Math.sin( t / 180 * Math.PI ) * r;
+
+          quad.style.left = x + 'px';
+          quad.style.top  = y + 'px';
+
+          t = (t + 3) % 360;
+        }
+        setInterval(animate, 25);
+
+        jQuery(window).mousemove(function(e) {
+          var mouse = whereAt(e);
+          center.x = mouse[0];
+          center.y = mouse[1];
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Brincando com Javascript</h1>
+
+    <p>Uma brincadeira para avaliar o conhecimento de trigonometria.</p>
+
+    <div id="quadrado">Q</div>
+
+  </body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Cálculo de Fractal com Workers</title>
+
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <meta name="description" content="Para aprender a usar os Workers do HTML5, fiz esse teste com fractais. A Documentação é o próprio código."/>
+
+        <style type="text/css">
+            html { height: 100%;  }
+            body { height: 100%; margin:0; padding: 0; }
+            #canvas { height: 100%; width: 100%; margin: 0; padding: 0; background-color: black;}
+            h1, p { display: none; }
+        </style>
+
+        <script type="text/javascript">
+            window.onload = function () {
+                canvas = document.getElementById('canvas');
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+
+                var d = canvas.getContext('2d');
+
+                var zi = [-1,-1];
+                if( canvas.width < canvas.height ) {
+                    zi[1] = canvas.height/canvas.width * -1;
+                } else if( canvas.width > canvas.height ) {
+                    zi[0] = canvas.width/canvas.height * -1;
+                }
+                var stepx = (Math.abs(zi[0])*2) / canvas.width;
+                var stepy = (Math.abs(zi[1])*2) / canvas.height;
+
+                d.fillStyle = "#FFFFFF";
+
+                var ref = {};
+
+                ref.z = Array();
+                ref.z[0] = zi[0];
+                ref.z[1] = zi[1];
+
+                ref.i = 0;
+                ref.j = 0;
+
+                message = {
+                    'width': canvas.clientWidth,
+                    'height': canvas.clientHeight,
+                    'ref': ref,
+                    'zi': zi,
+                    'stepx': stepx,
+                    'stepy': stepy
+                    };
+
+
+                points = new Array();
+
+                setInterval(function (e) {
+                    var p = null;
+                    while(p = points.pop()) {
+                        d.fillStyle = p.color;
+                        d.fillRect(p.x,p.y,1,1);
+                    }
+                }, 100);
+
+                callback = function(e) {
+                    points.push(e.data);
+                }
+
+                // mude com cautela
+                message['walk'] = 3;
+                var workers = [];
+
+                for(var i=0; i < message['walk']; i++) {
+                    workers.push(new Worker('fractal-worker.js'));
+                    workers[i].onmessage = callback;
+
+                    message['begin'] = i;
+                    workers[i].postMessage(message);
+                }
+
+            }
+        </script>
+
+        <style type="text/css">
+            html { height: 100%; }
+            body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+            #container { height: 100%; background-color: magenta; overflow: hidden; position: relative; }
+        </style>
+    </head>
+    <body>
+        <h1>Cálculo de Fractal com Workers</h1>
+        <p>Para aprender a usar os <i>Workers</i> do HTML5, fiz esse teste com fractais. A Documentação é o próprio código.</p>
+        <canvas id="canvas"></canvas>
+    </body>
+</html>

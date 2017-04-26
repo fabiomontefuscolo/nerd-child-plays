@@ -1,0 +1,96 @@
+<html>
+    <head>
+        <title>Particulas</title>
+        <script type="application/x-javascript">
+            var G = 0.1;
+
+            var Particle = function(sx, sy, vx, vy) {
+                var context = null;
+                var color = "#"+Math.round(0xffffff * Math.random()).toString(16);
+                var size = 10;
+                var fid = 0;
+                var factor = Math.random();
+
+                function update() {
+                    erase();
+
+                    sy = sy + vy + G/2;
+                    vy = vy + G;
+
+                    if(sy > 589) {
+                        vx = vx * factor;
+
+                        if(Math.abs(vy) > 0.5) {
+                            vy = -1 * factor * Math.abs(vy);
+                        } else {
+                            vy = 0;
+                            sy = sy - G/2
+                        }
+                    }
+
+                    if(sx < 1 || sx > 799) {
+                        vx = -1 * vx;
+                    }
+
+                    sx = sx + vx;
+
+
+                    draw();
+                }
+
+                function erase() {
+                    context.setFillColor("#FFFFFF");
+                    context.fillRect(sx-1, sy-1, size+2, size+2); //Sem rastro
+                    //context.fillRect(sx, sy, 5, 5); //Com rastro
+                }
+
+                function draw() {
+                    context.setFillColor(color);
+                    context.fillRect(sx, sy, size, size);
+                }
+
+                this.start = function() {
+                    fid = setInterval(update, 10);
+                }
+
+                this.stop = function() {
+                    clearInterval(fid);
+                    fid = 0;
+                }
+
+                this.setContext = function(c) {
+                    context = c;
+                }
+
+                this.setColor = function(c) {
+                    color = c;
+                }
+            }
+
+            function start() {
+                var canvas = document.getElementById('canvas');
+                var c = canvas.getContext('2d');
+
+                for( var i = 0; i < 334; i++ ) {
+                    var p = new Particle(400, 300,
+                                         Math.random() * 10 - 5,
+                                         Math.random() * 10 - 5);
+                    p.setContext(c);
+                    setTimeout(p.start,1000);
+                }
+            }
+
+            window.onload = start;
+        </script>
+        <style type="text/css">
+            canvas {
+                border: 1px solid black;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Particulas</h1>
+        <canvas id="canvas" width="800" height="600"></canvas>
+        <p id="ellapsed"></p>
+    </body>
+</html>
