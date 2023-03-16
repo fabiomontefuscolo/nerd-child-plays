@@ -1,61 +1,108 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Fractal que está na Wikipedia</title>
-        <style type="text/css">
-            html { height: 100%;  }
-            body { height: 100%; margin:0; padding: 0; }
-            #canvas { height: 100%; width: 100%; margin: 0; padding: 0; background-color: black;}
-            h1, p { display: none; }
-        </style>
-        <script type="text/javascript">
-            window.onload = function () {
-                canvas = document.getElementById('canvas');
-                canvas.width = canvas.clientWidth;
-                canvas.height = canvas.clientHeight;
+  <head>
+    <title>Fractal que está na Wikipedia</title>
+    <style type="text/css">
+      html {
+        height: 100%;
+      }
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #canvas {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: black;
+      }
+      h1,
+      p {
+        display: none;
+      }
+    </style>
+    <script type="text/javascript">
+      window.onload = function () {
+        canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const width = (canvas.width = canvas.clientWidth);
+        const height = (canvas.height = canvas.clientHeight);
 
-                var d = canvas.getContext('2d');
-                d.fillStyle = "#FFFFFF";
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, width, height);
+        ctx.fillStyle = "#000000";
 
-                var point = {x: 0, y: canvas.height};
+        // Set up the initial values
+        let x = 0;
+        let y = height;
 
-                var system = [
-                    function(p) {
-                        return {
-                            x: 0,
-                            y: p.y*1.6
-                        };
-                    },
-                    function(p) {
-                        return {
-                            x: 2*p.x - 2.6*p.y,
-                            y: 2.3*p.x + 2.2*p.y + 16
-                        };
-                    },
-                    function(p) {
-                        return {
-                            x: -1.5*p.x + 2.8*p.y,
-                            y: 2.6*p.x + 2.4*p.y + 44
-                        };
-                    },
-                    function(p) {
-                        return {
-                            x: 8.5*p.x + 0.4*p.y,
-                            y: -0.04*p.x + 8.5*p.y + 16
-                        };
-                    }
-                ];
-
-                setInterval(function(){
-                    point = system[Math.round(Math.random()*10)%4](point);
-                    d.fillRect(point.x,point.y,1,1);
-                    console.log(point.x, point.y);
-                },100);
+        // Define the four affine transformations
+        function get_transform_func(r) {
+            if (r < 0.01) {
+                return function(x, y) {
+                    return [
+                        0,
+                        0.16 * y
+                    ];
+                }
             }
-        </script>
-    </head>
-    <body>
-        <h1>Fractal que estava na Wikipedia</h1>
-        <canvas id="canvas"></canvas>
-    </body>
+            if (r < 0.86) {
+                return function(x, y) {
+                    return [
+                        0.85 * x + 0.04 * y,
+                        -0.04 * x + 0.85 * y + 1.6
+                    ];
+                }
+            }
+            if (r < 0.93) {
+                return function(x, y) {
+                    return [
+                        0.2 * x - 0.26 * y,
+                        0.23 * x + 0.22 * y + 1.6
+                    ];
+                }
+            }
+            return function(x, y) {
+                return [
+                    -0.15 * x + 0.28 * y,
+                    0.26 * x + 0.24 * y + 0.44
+                ];
+            }
+        }
+
+        let factors = {
+            "x": (50 + Math.floor(Math.random() * 100)) * (Math.random() > 0.5 ? 1 : -1),
+            "y": 50 + Math.floor(Math.random() * 100),
+        }
+
+        // Set up the iterations
+        window.h = 0;
+        function run() {
+          for (let i = 0; i < 10000; i++) {
+            // Choose a random transformation
+            let func = get_transform_func(Math.random());
+            let [newX, newY] = func(x, y);
+            
+            // Update the values
+            x = newX;
+            y = newY;
+
+            // Draw the point
+            //ctx.fillRect(newX * 100, height - newY * 100, 1, 1);
+            ctx.fillRect(width / 2 + x * factors.x, height - y * factors.y, 1, 1);
+            window.h = Math.max(window.h, newY)
+          }
+        }
+        setInterval(function () {
+          requestAnimationFrame(run);
+        }, 100);
+      };
+    </script>
+  </head>
+  <body>
+    <h1>Fractal from ChatGPT</h1>
+    <canvas id="canvas"></canvas>
+  </body>
 </html>
