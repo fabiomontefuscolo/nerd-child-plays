@@ -22,6 +22,7 @@ self.addEventListener('message', function(e) {
 
     for(var i = data.begin; i < data.height; i = i + data.walk) {
         data.ref.z[0] = data.zi[0];
+        var resulting_line = new Array(data.width);
 
         for( var j=0; j < data.width; j++ ){
             var m = 0;
@@ -31,7 +32,7 @@ self.addEventListener('message', function(e) {
             // Bons valores para diminuir o laço
             // ['255/1=255', '255/3=85', '255/5=51', '255/15=17', '255/17=15', '255/51=5', '255/85=3', '255/255=1']
             var k=0;
-            while(k < 255 && m < 2) {
+            while(k < 255 && m < 51) {
                 z = multz(z,z);
                 z = [z[0]+c[0], z[1]+c[1]]
                 m = absz(z);
@@ -46,11 +47,11 @@ self.addEventListener('message', function(e) {
                       + green.toString(16).replace(/^(.)$/, "0$1")
                       + blue.toString(16).replace(/^(.)$/, "0$1");
 
-            postMessage({x:j, y:i, color:color});
-
+            resulting_line[j] = {x:j, y:i, color:color}
             data.ref.z[0] = data.ref.z[0] + data.stepx
         }
         data.ref.z[1] = data.ref.z[1] + data.stepy * data.walk;
+        postMessage(resulting_line);
     }
 
 }, false);

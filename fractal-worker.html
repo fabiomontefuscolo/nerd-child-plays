@@ -50,19 +50,13 @@
                     'stepy': stepy
                     };
 
-
-                points = new Array();
-
-                setInterval(function (e) {
-                    var p = null;
-                    while(p = points.pop()) {
+                callback = async function(e) {
+                    var points = e.data;
+                    for (var i = 0; i < points.length; i++) {
+                        var p = points[i];
                         d.fillStyle = p.color;
                         d.fillRect(p.x,p.y,1,1);
                     }
-                }, 100);
-
-                callback = function(e) {
-                    points.push(e.data);
                 }
 
                 // mude com cautela
