@@ -31,13 +31,13 @@
                 }
 
                 function erase() {
-                    context.setFillColor("#FFFFFF");
+                    context.fillStyle = "#FFFFFF";
                     context.fillRect(sx-1, sy-1, size+2, size+2); //Sem rastro
                     //context.fillRect(sx, sy, 5, 5); //Com rastro
                 }
 
                 function draw() {
-                    context.setFillColor(color);
+                    context.fillStyle = color;
                     context.fillRect(sx, sy, size, size);
                 }
 
@@ -83,6 +83,8 @@
             function start() {
                 var canvas = document.getElementById('canvas');
                 var painel = document.getElementById('painel');
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.offsetHeight;
                 var c = canvas.getContext('2d');
 
                 for( var i = 0; i < 10; i++ ) {
@@ -102,16 +104,28 @@
                 }
             }
 
-            window.onload = start;
+            window.addEventListener('load', function(){ requestAnimationFrame(start); }, false)
         </script>
         <style type="text/css">
-            canvas {
-                border: 1px solid black;
+            html { height: 100%; }
+            body {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            #canvas {
+                flex: 1;
+            }
+            #painel {
+                background-color: black;
+                height: 2em;
+                text-align: center;
             }
         </style>
     </head>
     <body>
-        <h1>Particulas</h1>
         <canvas id="canvas" width="800" height="600"></canvas>
         <div id="painel"></div>
     </body>
