@@ -7,6 +7,8 @@
         <script type="application/x-javascript">
             window.onload = function() {
                 var canvas = document.getElementById('canvas');
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
                 var d = canvas.getContext('2d');
                 
                 var zi = [-1,-1];
@@ -35,10 +37,6 @@
                     }
                     z[1] = z[1] + stepy;
                 }
-                var endtime = new Date().getTime();
-                var total = (endtime-starttime)/1000;
-
-                document.getElementById('ellapsed').innerHTML = "Tempo gasto: "+total+"s";
             }
 
             function mandel(z){
@@ -68,14 +66,15 @@
             }
         </script>
         <style type="text/css">
-            canvas {
-                border: 1px solid black;
+            html { height: 100% }
+            body { height: 100%; margin: 0; padding: 0 }
+            #canvas {
+                width: 100%;
+                height: 100%
             }
         </style>
     </head>
     <body>
-        <h1>Mandelbrot</h1>
-        <canvas id="canvas" width="1024" height="640"></canvas>
-        <p id="ellapsed"></p>
+        <canvas id="canvas"></canvas>
     </body>
 </html>
