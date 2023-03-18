@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Fractal que está na Wikipedia</title>
+    <title>Fern</title>
     <style type="text/css">
       html {
         height: 100%;
@@ -70,11 +70,12 @@
 
         var transformations = [
             { "weight": 0.01, "e1": [0, 0, 0], "e2": [0, 0.16, 0], "color": "#FFFFFF" },
-            { "weight": 0.85, "e1": [0.85, 0.04, 0], "e2": [-0.04, 0.85, 1.6], "color": "#FF0000" },
+            { "weight": 0.85, "e1": [0.25, 0.04, 0], "e2": [-0.04, 0.85, 1.6], "color": "#FF0000" },
             { "weight": 0.93, "e1": [0.2, -0.26, 0], "e2": [0.23, 0.22, 1.6], "color": "#0000FF" },
             { "weight": 1, "e1": [-0.15, 0.28, 0], "e2": [0.26, 0.24, 0.44], "color": "#00FF00" }
           ];
-        var _transformations;
+        var _transformations = JSON.parse(JSON.stringify(transformations));
+        _transformations[1].e1[0] = 0.85
 
         function get_transform_func() {
           let r = Math.random();
@@ -99,7 +100,7 @@
         }
 
         let $transformations = document.getElementById("transformations");
-        $transformations.value = JSON.stringify(transformations, null, 2);
+        $transformations.value = JSON.stringify(_transformations, null, 2);
         $transformations.addEventListener("keydown", debounce(function (evt) {
             var valid_key = evt.key
                 && (
