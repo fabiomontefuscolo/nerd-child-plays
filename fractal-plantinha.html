@@ -11,9 +11,10 @@
         height: 100%;
         margin: 0;
         padding: 0;
+        overflow: hidden;
       }
       #canvas {
-        height: calc(100% - 10px);
+        height: 100%;
         width: 100%;
         margin: 0;
         padding: 0;
@@ -31,13 +32,15 @@
         const width = (canvas.width = canvas.clientWidth);
         const height = (canvas.height = canvas.clientHeight);
 
-        ctx.fillStyle = "#FFFFFF";
-        ctx.fillRect(0, 0, width, height);
         ctx.fillStyle = "#000000";
+        ctx.fillRect(0, 0, width, height);
+        ctx.fillStyle = "#FFFFFF";
 
-        // Set up the initial values
-        let x = 0;
-        let y = height;
+        var contador = 0;
+        function walkto(n, step=0.01){
+          let cur = contador * step;
+          return Math.min(n, cur);
+        }
 
         // Define the four affine transformations
         function get_transform_func(r) {
@@ -53,7 +56,7 @@
             if (r < 0.86) {
                 return function(x, y) {
                     return [
-                        0.85 * x + 0.04 * y,
+                       0.85 * x + 0.04 * y,
                         -0.04 * x + 0.85 * y + 1.6,
                         '#FF0000'
                     ];
@@ -62,36 +65,59 @@
             if (r < 0.93) {
                 return function(x, y) {
                     return [
-                        0.2 * x - 0.26 * y,
-                        0.23 * x + 0.22 * y + 1.6,
+                       walkto(0.2) * x - walkto(0.26) * y,
+                        walkto(0.23) * x + walkto(0.22) * y + 1.6,
                         '#00FF00'
                     ];
                 }
             }
             return function(x, y) {
                 return [
-                    -0.15 * x + 0.28 * y,
-                    0.26 * x + 0.24 * y + 0.44,
+                    -0.15 * x + walkto(0.28) * y,
+                    0.26 * x + walkto(0.24) * y + 0.44,
                     '#0000FF'
                 ];
             }
         }
+
+        // Set up the initial values
+        let current_x = 0;
+        let current_y = height;
+        let current_color = '#FFFFFF';
+
+        let last_update_matrix = new Array(width).fill(0).map(() => new Array(height).fill(0));
 
         // Set up the iterations
         function run() {
           for (let i = 0; i < 10000; i++) {
             // Choose a random transformation
             let func = get_transform_func(Math.random());
-            let [newX, newY, color] = func(x, y);
+            [current_x, current_y, current_color] = func(current_x, current_y);
 
             // Update the values
-            x = newX;
-            y = newY;
+            x = Math.round(width / 2 + current_x * 100);
+            y = Math.round(height - current_y * 100);
 
             // Draw the point
-            ctx.fillStyle = color;
-            ctx.fillRect(width / 2 + x * 100, height - y * 100, 1, 1);
+            if (x > 0 && x < width && y > 0 && y < height) {
+              ctx.fillStyle = current_color;
+              ctx.fillRect(x, y, 1, 1);
+              last_update_matrix[x][y] = 3000;
+            }
           }
+          for (let i = 0; i < last_update_matrix.length; i++) {
+            for (let j = 0; j < last_update_matrix[i].length; j++) {
+              if (last_update_matrix[i][j] < 0) {
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(i, j, 1, 1);
+                last_update_matrix[i][j] = 0;
+              }
+              else if(last_update_matrix[i][j] > 0) {
+                last_update_matrix[i][j] -= 666;
+              }
+            }
+          }
+          contador++;
         }
         setInterval(function () {
           run();
