@@ -45,7 +45,8 @@
                 return function(x, y) {
                     return [
                         0,
-                        0.16 * y
+                        0.16 * y,
+                        '#000000'
                     ];
                 }
             }
@@ -53,7 +54,8 @@
                 return function(x, y) {
                     return [
                         0.85 * x + 0.04 * y,
-                        -0.04 * x + 0.85 * y + 1.6
+                        -0.04 * x + 0.85 * y + 1.6,
+                        '#FF0000'
                     ];
                 }
             }
@@ -61,43 +63,38 @@
                 return function(x, y) {
                     return [
                         0.2 * x - 0.26 * y,
-                        0.23 * x + 0.22 * y + 1.6
+                        0.23 * x + 0.22 * y + 1.6,
+                        '#00FF00'
                     ];
                 }
             }
             return function(x, y) {
                 return [
                     -0.15 * x + 0.28 * y,
-                    0.26 * x + 0.24 * y + 0.44
+                    0.26 * x + 0.24 * y + 0.44,
+                    '#0000FF'
                 ];
             }
         }
 
-        let factors = {
-            "x": (50 + Math.floor(Math.random() * 100)) * (Math.random() > 0.5 ? 1 : -1),
-            "y": 50 + Math.floor(Math.random() * 100),
-        }
-
         // Set up the iterations
-        window.h = 0;
         function run() {
           for (let i = 0; i < 10000; i++) {
             // Choose a random transformation
             let func = get_transform_func(Math.random());
-            let [newX, newY] = func(x, y);
-            
+            let [newX, newY, color] = func(x, y);
+
             // Update the values
             x = newX;
             y = newY;
 
             // Draw the point
-            //ctx.fillRect(newX * 100, height - newY * 100, 1, 1);
-            ctx.fillRect(width / 2 + x * factors.x, height - y * factors.y, 1, 1);
-            window.h = Math.max(window.h, newY)
+            ctx.fillStyle = color;
+            ctx.fillRect(width / 2 + x * 100, height - y * 100, 1, 1);
           }
         }
         setInterval(function () {
-          requestAnimationFrame(run);
+          run();
         }, 100);
       };
     </script>
