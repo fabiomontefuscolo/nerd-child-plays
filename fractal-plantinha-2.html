@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fern</title>
+    <style type="text/css">
+      html {
+        height: 100%;
+      }
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #canvas {
+        height: calc(100% - 10px);
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: black;
+      }
+      #equations {
+        position: absolute;
+        background-color: transparent;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        font-family: monospace;
+        font-size: 150%;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+    </style>
+    <script type="text/javascript">
+      class Leaf {
+        constructor(x, y, offsetX, offsetY) {
+          this.x = x;
+          this.y = y;
+          this.offsetX = offsetX;
+          this.offsetY = offsetY;
+          this.color = `#${Math.floor(Math.random() * 0xffffff).toString(16)}`;
+          this.equations = [
+            { weight: 0.01, e1: [0, 0, 0], e2: [0, 0.16, 0] },
+            { weight: 0.85, e1: [0.85, 0.04, 0], e2: [-0.04, 0.85, 1.6] },
+            { weight: 0.93, e1: [0.2, -0.26, 0], e2: [0.23, 0.22, 1.6] },
+            { weight: 1, e1: [-0.15, 0.28, 0], e2: [0.26, 0.24, 0.44] },
+          ];
+        }
+
+        transform(x, y) {
+          let r = Math.random();
+
+          for (let i = 0; i < this.equations.length; i++) {
+            let { weight, e1, e2 } = this.equations[i];
+            if (r < weight) {
+              let [x1, y1, c1] = e1;
+              let [x2, y2, c2] = e2;
+              return [x1 * x + y1 * y + c1, x2 * x + y2 * y + c2];
+            }
+          }
+        }
+
+        next() {
+          let [x, y] = this.transform(this.x, this.y);
+          this.x = x;
+          this.y = y;
+        }
+      }
+
+      const debounce = function (callback, delay = 1000) {
+        let timeout;
+
+        return function () {
+          clearTimeout(timeout);
+          timeout = setTimeout(callback.bind(null, ...arguments), delay);
+        };
+      };
+
+      window.onload = function () {
+        canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const width = (canvas.width = canvas.clientWidth);
+        const height = (canvas.height = canvas.clientHeight);
+
+        ctx.willReadFrequently = true;
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, width, height);
+
+        let leaf = new Leaf(0, 0, width / 2, height);
+        document
+          .getElementById("equations")
+          .addEventListener("keydown", debounce(function (evt) {
+            var valid_key = evt.key
+                && (
+                    evt.key.match(/^[a-z0-9.\[\]{}"'-]$/i)
+                    || evt.key === "Backspace"
+                )
+
+            if (! valid_key) {
+              return;
+            }
+
+            console.log(evt)
+            equations = JSON.parse(document.getElementById("equations").value);
+            // leaf = new Leaf(0, 0, width / 2, height);
+            leaf.equations = equations.sort((e1, e2) => e1.weight - e2.weight);
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(0, 0, width, height);
+        }));
+
+        // Set up the iterations
+        function run() {
+          if (!leaf) {
+            return;
+          }
+          for (let i = 0; i < 10000; i++) {
+            // Draw the point
+            let x = Math.round(leaf.offsetX + leaf.x * 100);
+            let y = Math.round(leaf.offsetY - leaf.y * 100);
+            leaf.next();
+
+            if (x > 0 && y > 0 && x < width && y < height) {
+              ctx.fillStyle = leaf.color;
+              ctx.fillRect(x, y, 1, 1);
+            }
+          }
+        }
+        setInterval(function () {
+          run();
+        }, 150);
+      };
+    </script>
+  </head>
+  <body>
+    <textarea id="equations">
+    [
+        {"weight": 0.01, "e1": [ 0,    0,    0], "e2": [0,     0.16, 0]},
+        {"weight": 0.85, "e1": [ 0.85, 0.04, 0], "e2": [-0.04, 0.85, 1.6]},
+        {"weight": 0.93, "e1": [ 0.2, -0.26, 0], "e2": [0.23,  0.22, 1.6]},
+        {"weight": 1,    "e1": [-0.15, 0.28, 0], "e2": [0.26,  0.24, 0.44]}
+    ]
+    </textarea>
+    <canvas id="canvas"></canvas>
+  </body>
+</html>
