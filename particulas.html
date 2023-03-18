@@ -9,62 +9,110 @@
                 width: 100%;
                 height: 100%
             }
+            #status {
+                border-collapse: collapse;
+                font-size: 120%;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+            #status td {
+                font-weight: bold;
+                border-bottom: 1px solid #000;
+                width: 15em;
+                line-height: 2em;
+            }
         </style>
         <script type="application/x-javascript">
-            var G = 0.1;
+            var G = 0.3;
 
             var Particle = function(sx, sy, vx, vy, boundaries) {
                 var context = null;
-                var color = "#"+Math.round(0xffffff * Math.random()).toString(16);
-                var size = 10;
-                var fid = 0;
-                var factor = Math.random();
+                var events = {};
+                
+                this.factor = 0.4;
+                this.color = "#"+Math.round(0xffffff * Math.random()).toString(16);
+                this.size = 10;
+                this.fid = 0;
+                this.sx = sx;
+                this.sy = sy;
+                this.vx = vx;
+                this.vy = vy;
 
-                function update() {
-                    erase();
+                this.boundaries = boundaries;
 
-                    sy = sy + vy + G/2;
-                    vy = vy + G;
+                this.update = function () {
+                    this.erase();
 
-                    if(sy + size >= boundaries.max_y) {
-                        vx = vx * factor;
+                    let oldX = this.sx;
+                    let oldY = this.sy;
 
-                        if(Math.abs(vy) > 0.5) {
-                            vy = -1 * factor * Math.abs(vy);
-                        } else {
-                            vy = 0;
-                            sy = sy - G/2
-                        }
+                    this.sy = Math.ceil(this.sy + this.vy + G/2);
+                    this.vy = this.vy + G;
+
+                    if(this.sy + this.size >= this.boundaries.max_y) {
+                        this.vx = this.vx * this.factor;
+                        this.vy = -1 * this.factor * Math.abs(this.vy);
+                        this.sy = this.boundaries.max_y - this.size;
                     }
 
-                    if(sx < 1 || sx + size >= boundaries.max_x) {
-                        vx = -1 * vx;
+                    this.sx = this.sx + this.vx;
+                    if (this.boundaries.max_x - (this.sx + this.size) < 0) {
+                        this.sx = this.boundaries.max_x - this.size;
+                        this.vx = -1 * (this.vx * this.factor);
+                    } else if (this.sx < 0) {
+                        this.sx = 0;
+                        this.vx = -1 * (this.vx * this.factor);
                     }
 
-                    sx = sx + vx;
+                    if (oldX == this.sx) {
+                        this.vx = 0;
+                    }
+                    if (oldY == this.sy) {
+                        this.vy = 0;
+                    }
 
+                    this.dispatchEvent('update', { x: this.sx, y: this.sy, vx: this.vx, vy: this.vy })
+                    this.draw();
 
-                    draw();
+                    if (this.vy == 0 && this.vx == 0) {
+                        this.stop();
+                    }
                 }
 
-                function erase() {
+                this.addEventListener = function (event, callback) {
+                    if(!events[event]) {
+                        events[event] = [];
+                    }
+                    events[event].push(callback);
+                }
+
+                this.dispatchEvent = function (event, data) {
+                    if(events[event]) {
+                        events[event].forEach(function(callback) {
+                            callback(data, this);
+                        });
+                    }
+                }
+
+                this.erase = function () {
                     context.fillStyle = "#FFFFFF";
-                    context.fillRect(sx-1, sy-1, size+2, size+2); //Sem rastro
-                    //context.fillRect(sx, sy, 5, 5); //Com rastro
+                    context.fillRect(this.sx-1, this.sy-1, this.size+2, this.size+2); //Sem rastro
+                    //context.fillRect(this.sx, this.sy, 5, 5); //Com rastro
                 }
 
-                function draw() {
-                    context.fillStyle = color;
-                    context.fillRect(sx, sy, size, size);
+                this.draw = function () {
+                    context.fillStyle = this.color;
+                    context.fillRect(this.sx, this.sy, this.size, this.size);
                 }
 
                 this.start = function() {
-                    fid = setInterval(update, 10);
+                    this.fid = setInterval(this.update.bind(this), 30);
                 }
 
                 this.stop = function() {
-                    clearInterval(fid);
-                    fid = 0;
+                    clearInterval(this.fid);
+                    this.fid = 0;
                 }
 
                 this.setContext = function(c) {
@@ -72,12 +120,35 @@
                 }
 
                 this.setColor = function(c) {
-                    color = c;
+                    this.color = c;
                 }
             }
 
-            function start() {
+            function create_status_tracking_callback(table, color) {
+                var tr = document.createElement('tr');
+                var x = document.createElement('td');
+                var y = document.createElement('td');
+                var vx = document.createElement('td');
+                var vy = document.createElement('td');
+                tr.appendChild(x);
+                tr.appendChild(y);
+                tr.appendChild(vx);
+                tr.appendChild(vy);
+                tr.style = "color: " + color;
+                table.appendChild(tr);
+                return function(data, p) {
+                    x.innerHTML = data.x;
+                    y.innerHTML = data.y;
+                    vx.innerHTML = data.vx;
+                    vy.innerHTML = data.vy;
+                }
+            }
+
+            function start(x, y) {
                 var canvas = document.getElementById('canvas');
+                var status_table = document.querySelector('#status tbody')
+                status_table.innerHTML = '';
+
                 canvas.width = canvas.clientWidth;
                 canvas.height = canvas.clientHeight;
 
@@ -86,23 +157,41 @@
                 c.fillRect(0, 0, canvas.width, canvas.height);
                 c.fillStyle = "#000000";
 
-                for( var i = 0; i < 34; i++ ) {
+                for( var i = 0; i < 10; i++ ) {
                     var p = new Particle(
-                        400,
-                        300,
-                        Math.random() * 10 - 5,
-                        Math.random() * 10 - 5,
+                        x,
+                        y,
+                        Math.random() * 10 * (Math.random() > 0.5 ? 1 : -1),
+                        Math.random() * 10 * (Math.random() > 0.5 ? 1 : -1),
                         { max_x: canvas.width, max_y: canvas.height }
                     );
+                    var status_func = create_status_tracking_callback(status_table, p.color);
+                    p.addEventListener('update', status_func);
                     p.setContext(c);
-                    requestAnimationFrame(p.start.bind(p));
+                    setTimeout(p.start.bind(p), 0);
                 }
             }
 
-            window.onload = start;
+            window.addEventListener('click', function(e) {
+                requestAnimationFrame(function() {
+                    start(e.clientX, e.clientY);
+                });
+                //start(e.clientX, e.clientY);
+            });
         </script>
     </head>
     <body>
+        <table id="status">
+            <thead>
+                <tr>
+                    <td>x</td>
+                    <td>y</td>
+                    <td>vx</td>
+                    <td>vy</td>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
         <canvas id="canvas"></canvas>
     </body>
 </html>
