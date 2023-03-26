@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colors</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <script>
+        function setup_canvas_el() {
+            let $canvas = document.getElementById('canvas');
+            $canvas.width = $canvas.clientWidth;
+            $canvas.height = $canvas.clientHeight;
+            return $canvas;
+        }
+        function init_canvas($canvas) {
+            let ctx = $canvas.getContext('2d');
+            ctx.strokeStyle = "#FFFFFF";
+            ctx.fillStyle = "#0F0F0F";
+            ctx.fillRect(0, 0, $canvas.width, $canvas.height);
+            return ctx;
+        }
+        function angle(x, y) {
+            return Math.atan2(y, x) * 180 / Math.PI;
+        }
+        function angleAbs(angle) {
+            angle = Math.floor(angle) % 360;
+
+            if (angle < 0) {
+                angle = 360 + angle;
+            }
+
+            return angle % 360;
+        }
+
+        window.addEventListener('load', function() {
+            let $canvas = window.$canvas = setup_canvas_el();
+            let ctx = init_canvas($canvas);
+
+            let step_size_r = 255 / ($canvas.width / 2);
+            let step_size_g = 255 / ($canvas.height / 2);
+            let step_size_b = 255 / 360;
+
+            let cx = Math.floor($canvas.width / 2);
+            let cy = Math.floor($canvas.height / 2);
+
+            for (let x = 0; x < $canvas.width; x += 1) {
+                for (let y = 0; y < $canvas.height; y += 1) {
+                    let tx = x - cx;
+                    let ty = y - cy;
+                    //let a = (angle(tx, ty));
+
+                    let r = 255 - Math.abs(tx * step_size_r);
+                    let g = 255 - Math.abs(ty * step_size_g);
+                    let b = 255 - (Math.cos(Math.atan2(ty, tx)) + 1) * 127.5;
+
+                    // console.log(tx, ty, a, r, g, b)
+
+                    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                    ctx.fillRect(x, y, 10, 10);
+                }
+            }
+        });
+    </script>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+</body>
+</html>

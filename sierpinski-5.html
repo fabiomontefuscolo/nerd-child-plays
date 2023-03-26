@@ -1,0 +1,132 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta http-equiv="Content" content="text/html; charset=utf-8"/>
+        <title>Triangulo de Sierpinski</title>
+        <style>
+            html, body {
+                height: 100%;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            #canvas {
+                height: 100%;
+                width: 100%;
+            }
+        </style>
+        <script type="application/x-javascript">
+            class P {
+                constructor(x, y) {
+                    this.x = x;
+                    this.y = y;
+                }
+                copy() {
+                    return new P(this.x, this.y);
+                }
+            }
+
+            class SierpinskiTriangle {
+                constructor(p1, p2, p3) {
+                    this.p1 = p1;
+                    this.p2 = p2;
+                    this.p3 = p3;
+                }
+
+                getRandomVertex () {
+                    let random = Math.random();
+                    if (random < 0.33) {
+                        return this.p1;
+                    } 
+                    if (random < 0.66) {
+                        return this.p2;
+                    }
+                    return this.p3;
+                }
+
+                nextCoord() {
+                    let vertex = this.getRandomVertex();
+                    this.curr = this.curr || this.getRandomVertex().copy();
+                    this.curr.x = Math.floor((this.curr.x + vertex.x) / 2);
+                    this.curr.y = Math.floor((this.curr.y + vertex.y) / 2);
+                    return this.curr;
+                }
+
+                getDistanceFromVertexes() {
+                    let d1 = Math.sqrt(Math.pow(this.p1.x - this.curr.x, 2) + Math.pow(this.p1.y - this.curr.y, 2));
+                    let d2 = Math.sqrt(Math.pow(this.p2.x - this.curr.x, 2) + Math.pow(this.p2.y - this.curr.y, 2));
+                    let d3 = Math.sqrt(Math.pow(this.p3.x - this.curr.x, 2) + Math.pow(this.p3.y - this.curr.y, 2));
+                    return [d1, d2, d3];
+                }
+            }
+
+            window.onload = function() {
+                let $canvas = document.getElementById('canvas');
+                let width = $canvas.width = $canvas.clientWidth;
+                let height = $canvas.height = $canvas.clientHeight;
+                let params = new URLSearchParams(document.location.search);
+
+                let ctx = $canvas.getContext('2d');
+                ctx.fillStyle = "#000000";
+                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = "#FFFFFF";
+
+                let size = Math.min(width, height) * 0.2;
+                let h = Math.sqrt(3) * size / 2
+                
+                let center = new P(Math.floor(width / 2), Math.floor(height / 2));
+                let centers = [ center ];
+
+                let triangles = [];
+
+                let t_length = 6;
+                if (params.has('t_length')) {
+                    if (params.get('t_length').match(/^[0-9]+$/)) {
+                        t_length = parseInt(params.get('t_length'), 10);
+                    }
+                }
+                let a_step = Math.PI / (t_length / 2)
+
+                let curr_center = centers.pop();
+                let curr_vertex = new P(curr_center.x + size, curr_center.y);
+                for (let i = 0; i < t_length; i++) {
+                    let angle = (i + 1) * a_step;
+
+                    let new_vertex = new P(
+                        curr_center.x + size * Math.cos(angle),
+                        curr_center.y + size * Math.sin(angle)
+                    )
+                    let new_center = new P(
+                        curr_center.x + (h * 2) * Math.cos(angle - a_step / 2),
+                        curr_center.y + (h * 2) * Math.sin(angle - a_step / 2)
+                    )
+
+                    if (new_center.x > 0 && new_center.x < width && new_center.y > 0 && new_center.y < height) {
+                        triangles.push(new SierpinskiTriangle(new_center, curr_vertex, new_vertex));
+                    }
+
+                    triangles.push(new SierpinskiTriangle(curr_center, curr_vertex, new_vertex));
+                    curr_vertex = new_vertex;
+                }
+
+                function run () {
+                    for (let i = 0; i < 10000 / (triangles.length || 1); i++) {
+                        for ( let t of triangles ) {
+                            let coord = t.nextCoord();
+                            let distances = t.getDistanceFromVertexes();
+                            let colorRatio = 255 / Math.max(...distances);
+                            let colors = distances.map(d => Math.floor(d * colorRatio));
+
+                            ctx.fillStyle = `rgb(${colors[0]}, ${colors[1]}, ${colors[2]})`;
+                            ctx.fillRect(coord.x, coord.y, 1, 1);
+                        }
+                    }
+                }
+                setInterval(run, 100);
+            }
+        </script>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+    </body>
+</html>

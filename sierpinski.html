@@ -23,10 +23,10 @@
                 canvas.width = canvas.clientWidth;
                 canvas.height = canvas.clientHeight;
 
-                d.strokeStyle = '#f00';
-                d.fillStyle = "#FF0000";
+                d.strokeStyle = '#000';
+                d.fillStyle = "#000000";
                 d.lineWidth   = 1;
-
+                d.fillRect(0, 0, canvas.width, canvas.height);
                 var starttime = new Date().getTime();
 
                 // determinar base e altura do triângulo
@@ -42,19 +42,21 @@
                 // criar um Ponto sobre qualquer um dos vértices
                 var P = [pts[0][0], pts[0][1]];
 
+                function pitagoras(x1, y1, x2, y2) {
+                    return Math.sqrt( Math.pow(x2-x1,2) + Math.pow(y2-y1,2) );
+                }
+
+                var color_step = 255 / base;
+
                 function run() {
                     for( var i=0; i < 10000; i++ ){
-                        if( P[1] > (canvas.height-altura/2) ){
-                            if(P[0] < canvas.width/2) {
-                                d.fillStyle = "#FF0000";
-                            } else {
-                                d.fillStyle = "#00FF00";
-                            }
-                        } else {
-                            d.fillStyle = "#0000FF";
-                        }
+
+                        let r = 255 - color_step * pitagoras(P[0], P[1], pts[0][0], pts[0][1]);
+                        let g = 255 - color_step * pitagoras(P[0], P[1], pts[1][0], pts[1][1]);
+                        let b = 255 - color_step * pitagoras(P[0], P[1], pts[2][0], pts[2][1]);
 
                         // desenha o ponto P
+                        d.fillStyle = "rgb("+r+","+g+","+b+")";
                         d.fillRect(P[0],P[1],1,1);
 
                         // escolhe um vertice aleatoriamente
